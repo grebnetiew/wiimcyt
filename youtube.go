@@ -35,7 +35,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		log.Println("Reading response: ", err)
 		return
 	}
-	re := regexp.MustCompile(`<entry>.*?<title.*?>(.*?)</title>.*?https?://www\.youtube\.com/watch\?v=(.{10,20})&amp;feature=youtube_gdata`)
+	re := regexp.MustCompile(`<entry>.*?<title.*?>(.*?)</title>.*?(https?://www\.youtube\.com/watch\?v=.{10,20}&amp;feature=youtube_gdata)`)
 	entries := re.FindAllSubmatch(respBytes, 99)
 
 	// Send the result back to the client
