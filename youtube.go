@@ -87,8 +87,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		// WiiMC doesn't understand https
 		video := strings.Replace(SelectAlternateLink(entry.Link).Url,
 			"https:", "http:", 1)
-		thumb := strings.Replace(SelectBigThumbnail(entry.Media.Thumb).Url,
-			"https:", "http:", 1)
+		//thumb := strings.Replace(SelectBigThumbnail(entry.Media.Thumb).Url,
+		//	"https:", "http:", 1)
 		w.Write([]byte(fmt.Sprintf("File%d=%s\n", index+1, video)))
 		w.Write([]byte(fmt.Sprintf("Title%d=%s\n", index+1, title)))
 		//w.Write([]byte(fmt.Sprintf("Thumbnail%d=%s\n", index+1, thumb)))
