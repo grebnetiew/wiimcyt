@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -53,8 +54,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	log.Println("Responding to query '" + query + "'")
 	// Make the http request to youtube's api
-	resp, err := http.Get("https://gdata.youtube.com/feeds/api/videos?alt=json&q=" + query)
+	resp, err := http.Get("https://gdata.youtube.com/feeds/api/videos?alt=json&q=" + url.QueryEscape(query))
 	defer resp.Body.Close()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -71,7 +73,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	var yt YTFeed
 	err = json.Unmarshal(respBytes, &yt)
 	if err != nil {
-		log.Println("XML: ", err)
+		log.Println("json: ", err)
 		return
 	}
 
@@ -89,9 +91,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			"https:", "http:", 1)
 		w.Write([]byte(fmt.Sprintf("File%d=%s\n", index+1, video)))
 		w.Write([]byte(fmt.Sprintf("Title%d=%s\n", index+1, title)))
-		w.Write([]byte(fmt.Sprintf("Thumb%d=%s\n", index+1, thumb)))
+		//w.Write([]byte(fmt.Sprintf("Thumbnail%d=%s\n", index+1, thumb)))
 	}
-	log.Println("Successful response to query '", query, "'")
 }
 
 func main() {
