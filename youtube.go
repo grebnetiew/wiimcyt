@@ -6,13 +6,46 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"regexp"
 	"strings"
 )
+
+type YTFeed struct {
+	Feed Feed
+}
+
+type Feed struct {
+	Entries []Entry `json:"entry"`
+}
+
+type Entry struct {
+	Title Title
+	Link  []Link
+	Media Media `json:"media$group"`
+}
+
+type Media struct {
+	Thumb []Thumb `json:"media$thumbnail"`
+}
+
+type Title struct {
+	Text string `json:"$t"`
+}
+
+type Link struct {
+	Rel string
+	Url string `json:"href"`
+}
+
+type Thumb struct {
+	Url    string
+	Width  int
+	Height int
+}
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	query := r.FormValue("q")
@@ -21,35 +54,42 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Make the http request to youtube's api
-	resp, err := http.Get("https://gdata.youtube.com/feeds/api/videos?q=" + query)
+	resp, err := http.Get("https://gdata.youtube.com/feeds/api/videos?alt=json&q=" + query)
 	defer resp.Body.Close()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println("http.Get(youtube): ", err)
 		return
 	}
-	// Parse urls from the blob of xml
+	// Parse entries from the blob of xml
 	respBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println("Reading response: ", err)
 		return
 	}
-	re := regexp.MustCompile(`<entry>.*?<title.*?>(.*?)</title>.*?(https?://www\.youtube\.com/watch\?v=.{10,20}&amp;feature=youtube_gdata)`)
-	entries := re.FindAllSubmatch(respBytes, 99)
+	var yt YTFeed
+	err = json.Unmarshal(respBytes, &yt)
+	if err != nil {
+		log.Println("XML: ", err)
+		return
+	}
 
 	// Send the result back to the client
 	w.Header()["Content-Type"] = []string{"audio/x-scpls"}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("[playlist]\n"))
-	w.Write([]byte(fmt.Sprintf("NumberOfEntries=%d\n", len(entries))))
-	for index, entry := range entries {
-		tstr := string(entry[1])
-		ustr := string(entry[2])
-		ustr = strings.Replace(string(ustr), "&amp;", "&", -1)
-		ustr = strings.Replace(string(ustr), "https:", "http:", 1)
-		w.Write([]byte(fmt.Sprintf("File%d=%s\n", index+1, ustr)))
-		w.Write([]byte(fmt.Sprintf("Title%d=%s\n", index+1, tstr)))
+	w.Write([]byte(fmt.Sprintf("NumberOfEntries=%d\n", len(yt.Feed.Entries))))
+	for index, entry := range yt.Feed.Entries {
+		title := entry.Title.Text
+		// WiiMC doesn't understand https
+		video := strings.Replace(SelectAlternateLink(entry.Link).Url,
+			"https:", "http:", 1)
+		thumb := strings.Replace(SelectBigThumbnail(entry.Media.Thumb).Url,
+			"https:", "http:", 1)
+		w.Write([]byte(fmt.Sprintf("File%d=%s\n", index+1, video)))
+		w.Write([]byte(fmt.Sprintf("Title%d=%s\n", index+1, title)))
+		w.Write([]byte(fmt.Sprintf("Thumb%d=%s\n", index+1, thumb)))
 	}
 	log.Println("Successful response to query '", query, "'")
 }
@@ -60,4 +100,32 @@ func main() {
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
+}
+
+// There are many links in the feed and most are not the video.
+// The video has the rel attribute set to alternate.
+func SelectAlternateLink(links []Link) Link {
+	if len(links) == 0 {
+		return Link{"", ""}
+	}
+	for _, link := range links {
+		if link.Rel == "alternate" {
+			return link
+		}
+	}
+	return links[0]
+}
+
+// Thumbnails come in two sizes, small (90px) and large (360).
+// We'd like the big one for display on the TV.
+func SelectBigThumbnail(thumbs []Thumb) Thumb {
+	if len(thumbs) == 0 {
+		return Thumb{"", 0, 0}
+	}
+	for _, thumb := range thumbs {
+		if thumb.Width > 200 {
+			return thumb
+		}
+	}
+	return thumbs[0]
 }
