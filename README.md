@@ -22,6 +22,14 @@ Run the program on your server:
 
 The process will log on your command line.
 
+Settings
+--------
+
+Two things can be tuned to your liking (without much coding, obviously). Find the 
+`const` declaration in the file `youtube.go`. You can set a different port there for
+the server to listen on, and you can change the user whose subscription feed is
+loaded when the request is empty.
+
 Troubleshooting
 ---------------
 
