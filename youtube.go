@@ -75,12 +75,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		// Special feature: on empty query, return someone's subscriptions
 		log.Println("Responding to request for new videos")
 		resp, err = http.Get("https://gdata.youtube.com/feeds/api/users/" +
-			ytUser + "/newsubscriptionvideos?alt=json")
+			ytUser + "/newsubscriptionvideos?alt=json&max-results=50")
 	} else {
 		log.Println("Responding to query '" + query + "'")
 		// Make the http request to youtube's api
 		resp, err = http.Get("https://gdata.youtube.com/feeds/api/videos" +
-			"?alt=json&q=" + url.QueryEscape(query))
+			"?alt=json&max-results=50&q=" + url.QueryEscape(query))
 	}
 	defer resp.Body.Close()
 	if err != nil {
