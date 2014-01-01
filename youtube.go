@@ -55,7 +55,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	query := r.FormValue("q")
 	var resp *http.Response
 	var err error
-	if query == "" {
+	if query == " " {
 		// Special feature: on empty query, return someone's subscriptions
 		log.Println("Responding to request for new videos")
 		resp, err = http.Get("https://gdata.youtube.com/feeds/api/users/" +
