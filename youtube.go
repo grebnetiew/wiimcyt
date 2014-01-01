@@ -23,12 +23,20 @@ type Feed struct {
 	Entries []Entry `json:"entry"`
 }
 type Entry struct {
-	Title Title
-	Link  []Link
-	Media Media `json:"media$group"`
+	Title  Title
+	Author []Author
+	Link   []Link
+	Media  Media `json:"media$group"`
+}
+type Author struct {
+	Name Title
 }
 type Media struct {
-	Thumb []Thumb `json:"media$thumbnail"`
+	Thumb    []Thumb  `json:"media$thumbnail"`
+	Duration Duration `json:"yt$duration"`
+}
+type Duration struct {
+	Seconds string
 }
 type Title struct {
 	Text string `json:"$t"`
@@ -41,6 +49,12 @@ type Thumb struct {
 	Url    string
 	Width  int
 	Height int
+}
+
+type Video struct {
+	Author, Title, Link string
+	Duration            int
+	Thumb               string
 }
 
 // Settings
@@ -93,15 +107,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("[playlist]\n"))
 	w.Write([]byte(fmt.Sprintf("NumberOfEntries=%d\n", len(yt.Feed.Entries))))
 	for index, entry := range yt.Feed.Entries {
-		title := entry.Title.Text
-		// WiiMC doesn't understand https
-		video := strings.Replace(SelectAlternateLink(entry.Link).Url,
-			"https:", "http:", 1)
-		//thumb := strings.Replace(SelectBigThumbnail(entry.Media.Thumb).Url,
-		//	"https:", "http:", 1)
-		w.Write([]byte(fmt.Sprintf("File%d=%s\n", index+1, video)))
-		w.Write([]byte(fmt.Sprintf("Title%d=%s\n", index+1, title)))
-		//w.Write([]byte(fmt.Sprintf("Thumbnail%d=%s\n", index+1, thumb)))
+		v := entry.Parse()
+		w.Write([]byte(fmt.Sprintf("File%d=%s\n", index+1, v.Link)))
+		w.Write([]byte(fmt.Sprintf("Title%d=%s\n", index+1,
+			"["+v.Author+"] "+v.Title)))
+		w.Write([]byte(fmt.Sprintf("Length%d=%d\n", index+1, v.Duration)))
 	}
 }
 
@@ -139,4 +149,19 @@ func SelectBigThumbnail(thumbs []Thumb) Thumb {
 		}
 	}
 	return thumbs[0]
+}
+
+func (e *Entry) Parse() *Video {
+	var d int
+	fmt.Sscanf(e.Media.Duration.Seconds, "%d", &d)
+	return &Video{
+		Author: e.Author[0].Name.Text,
+		Title:  e.Title.Text,
+		// WiiMC doesn't understand https
+		Link: strings.Replace(SelectAlternateLink(e.Link).Url,
+			"https:", "http:", 1),
+		Thumb: strings.Replace(SelectBigThumbnail(e.Media.Thumb).Url,
+			"https:", "http:", 1),
+		Duration: d,
+	}
 }
