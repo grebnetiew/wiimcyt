@@ -82,6 +82,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	var yt YTFeed
 	err = json.Unmarshal(respBytes, &yt)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		log.Println("json: ", err)
 		return
 	}
