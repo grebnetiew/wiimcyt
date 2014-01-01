@@ -156,11 +156,11 @@ func (e *Entry) Parse() *Video {
 	var duration int
 	fmt.Sscanf(e.Media.Duration.Seconds, "%d", &duration)
 	// Displayed title doesn't contain non-ascii, since WiiMC doesn't
-	// display that correctly
+	// display that correctly with the default font
 	display := []rune("[" + e.Author[0].Name.Text + "] " + e.Title.Text)
 	for i := range display {
 		if (!supportUnicode) && display[i] > 255 {
-			display[i] = 164 // currency mark, slightly block-shaped 
+			display[i] = '¤' // looks like a block right?
 		}
 	}
 	return &Video{
