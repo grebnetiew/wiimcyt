@@ -52,7 +52,7 @@ type Thumb struct {
 }
 
 type Video struct {
-	Author, Title, Link string
+	Author, Title, Link, Display string
 	Duration            int
 	Thumb               string
 }
@@ -63,6 +63,8 @@ const (
 	ytUser = "kire456"
 	// Which port to serve on
 	httpServerAddr = ":8089"
+	// Set to true after installing a custom unicode font on the wii
+	supportUnicode = false
 )
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -109,8 +111,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	for index, entry := range yt.Feed.Entries {
 		v := entry.Parse()
 		w.Write([]byte(fmt.Sprintf("File%d=%s\n", index+1, v.Link)))
-		w.Write([]byte(fmt.Sprintf("Title%d=%s\n", index+1,
-			"["+v.Author+"] "+v.Title)))
+		w.Write([]byte(fmt.Sprintf("Title%d=%s\n", index+1, v.Display)))
 		w.Write([]byte(fmt.Sprintf("Length%d=%d\n", index+1, v.Duration)))
 	}
 }
@@ -152,16 +153,25 @@ func SelectBigThumbnail(thumbs []Thumb) Thumb {
 }
 
 func (e *Entry) Parse() *Video {
-	var d int
-	fmt.Sscanf(e.Media.Duration.Seconds, "%d", &d)
+	var duration int
+	fmt.Sscanf(e.Media.Duration.Seconds, "%d", &duration)
+	// Displayed title doesn't contain non-ascii, since WiiMC doesn't
+	// display that correctly
+	display := []rune("[" + e.Author[0].Name.Text + "] " + e.Title.Text)
+	for i := range display {
+		if supportUnicode || display[i] > 255 {
+			display[i] = 164 // currency mark, slightly block-shaped 
+		}
+	}
 	return &Video{
 		Author: e.Author[0].Name.Text,
 		Title:  e.Title.Text,
+		Display: string(display),
 		// WiiMC doesn't understand https
 		Link: strings.Replace(SelectAlternateLink(e.Link).Url,
 			"https:", "http:", 1),
 		Thumb: strings.Replace(SelectBigThumbnail(e.Media.Thumb).Url,
 			"https:", "http:", 1),
-		Duration: d,
+		Duration: duration,
 	}
 }

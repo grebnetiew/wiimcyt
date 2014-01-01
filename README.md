@@ -25,10 +25,14 @@ The process will log on your command line.
 Settings
 --------
 
-Two things can be tuned to your liking (without much coding, obviously). Find the 
+Three things can be tuned to your liking (without much coding, obviously). Find the 
 `const` declaration in the file `youtube.go`. You can set a different port there for
 the server to listen on, and you can change the user whose subscription feed is
 loaded when the request is empty.
+
+Finally, you can instruct the proxy to send unicode characters in the file list. The
+default behaviour replaces them, as the WiiMC font doesn't include glyphs to display
+them. If you change the font you might want to set this to `true`.
 
 Troubleshooting
 ---------------
