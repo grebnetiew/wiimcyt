@@ -18,7 +18,7 @@ for Youtube - Search with
 
 Run the program on your server:
 
-    go run youtube.go
+    go build youtube.go && ./youtube
 
 The process will log on your command line.
 
