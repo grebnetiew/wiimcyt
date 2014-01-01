@@ -15,48 +15,57 @@ import (
 	"strings"
 )
 
+// Madness required for correctly parsing youtube's api response
 type YTFeed struct {
 	Feed Feed
 }
-
 type Feed struct {
 	Entries []Entry `json:"entry"`
 }
-
 type Entry struct {
 	Title Title
 	Link  []Link
 	Media Media `json:"media$group"`
 }
-
 type Media struct {
 	Thumb []Thumb `json:"media$thumbnail"`
 }
-
 type Title struct {
 	Text string `json:"$t"`
 }
-
 type Link struct {
 	Rel string
 	Url string `json:"href"`
 }
-
 type Thumb struct {
 	Url    string
 	Width  int
 	Height int
 }
 
+// Settings
+const (
+	// Which user's feed to download on empty query
+	ytUser = "kire456"
+	// Which port to serve on
+	httpServerAddr = ":8089"
+)
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	query := r.FormValue("q")
+	var resp *http.Response
+	var err error
 	if query == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		// Special feature: on empty query, return someone's subscriptions
+		log.Println("Responding to request for new videos")
+		resp, err = http.Get("https://gdata.youtube.com/feeds/api/users/" +
+			ytUser + "/newsubscriptionvideos")
+	} else {
+		log.Println("Responding to query '" + query + "'")
+		// Make the http request to youtube's api
+		resp, err = http.Get("https://gdata.youtube.com/feeds/api/videos" +
+			"?alt=json&q=" + url.QueryEscape(query))
 	}
-	log.Println("Responding to query '" + query + "'")
-	// Make the http request to youtube's api
-	resp, err := http.Get("https://gdata.youtube.com/feeds/api/videos?alt=json&q=" + url.QueryEscape(query))
 	defer resp.Body.Close()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -97,7 +106,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("/", handler)
-	err := http.ListenAndServe(":8089", nil)
+	err := http.ListenAndServe(httpServerAddr, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
