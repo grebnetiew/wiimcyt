@@ -159,7 +159,7 @@ func (e *Entry) Parse() *Video {
 	// display that correctly
 	display := []rune("[" + e.Author[0].Name.Text + "] " + e.Title.Text)
 	for i := range display {
-		if supportUnicode || display[i] > 255 {
+		if (!supportUnicode) && display[i] > 255 {
 			display[i] = 164 // currency mark, slightly block-shaped 
 		}
 	}
