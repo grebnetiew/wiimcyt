@@ -30,7 +30,7 @@ The process will log on your command line.
 Settings
 --------
 
-Three things can be tuned to your liking (without much coding, obviously). Find the 
+Two things can be tuned to your liking (without much coding, obviously). Find the 
 `const` declaration in the file `youtube.go`. You can set a different port there for
 the server to listen on.
 
