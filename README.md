@@ -9,8 +9,12 @@ How to youtube
 I am assuming you have WiiMC set up. The wiimc.org search proxy is down, 
 so you must roll your own. I recommend a server, but this can be your PC as well.
 
-You will need the server's IP address.
-By default the proxy serves on port 8089, but you can change this in the code.
+First, you need to download the file `youtube.go` from above to your server.
+Then, you need to download the compiler for `go`, the language this program is
+written in. It's available at http://golang.org/
+
+You will then need the server's IP address.
+By default the program serves on port 8089, but you can change this in the code.
 Open `online_media.xml` (on the wii sd card, `apps/wiimc`) and replace the url 
 for Youtube - Search with 
 
