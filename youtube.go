@@ -59,28 +59,39 @@ type Video struct {
 
 // Settings
 const (
-	// Which user's feed to download on empty query
-	ytUser = "kire456"
 	// Which port to serve on
 	httpServerAddr = ":8089"
 	// Set to true after installing a custom unicode font on the wii
 	supportUnicode = false
 )
 
+func main() {
+	http.HandleFunc("/", handler)
+	err := http.ListenAndServe(httpServerAddr, nil)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	query := r.FormValue("q")
+	subscriber := r.FormValue("s")
 	var resp *http.Response
 	var err error
-	if query == " " {
-		// Special feature: on empty query, return someone's subscriptions
-		log.Println("Responding to request for new videos")
-		resp, err = http.Get("https://gdata.youtube.com/feeds/api/users/" +
-			ytUser + "/newsubscriptionvideos?alt=json&max-results=50")
-	} else {
+	switch {
+	case query != "":
 		log.Println("Responding to query '" + query + "'")
 		// Make the http request to youtube's api
 		resp, err = http.Get("https://gdata.youtube.com/feeds/api/videos" +
 			"?alt=json&max-results=50&q=" + url.QueryEscape(query))
+	case subscriber != "":
+		log.Println("Responding to request for new videos for " + subscriber)
+		resp, err = http.Get("https://gdata.youtube.com/feeds/api/users/" +
+			url.QueryEscape(subscriber) + "/newsubscriptionvideos?alt=json" + 
+			"&max-results=50")
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 	defer resp.Body.Close()
 	if err != nil {
@@ -116,17 +127,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func main() {
-	http.HandleFunc("/", handler)
-	err := http.ListenAndServe(httpServerAddr, nil)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
-}
-
 // There are many links in the feed and most are not the video.
 // The video has the rel attribute set to alternate.
-func SelectAlternateLink(links []Link) Link {
+func selectAlternateLink(links []Link) Link {
 	if len(links) == 0 {
 		return Link{"", ""}
 	}
@@ -140,7 +143,7 @@ func SelectAlternateLink(links []Link) Link {
 
 // Thumbnails come in two sizes, small (90px) and large (360).
 // We'd like the big one for display on the TV.
-func SelectBigThumbnail(thumbs []Thumb) Thumb {
+func selectBigThumbnail(thumbs []Thumb) Thumb {
 	if len(thumbs) == 0 {
 		return Thumb{"", 0, 0}
 	}
@@ -168,9 +171,9 @@ func (e *Entry) Parse() *Video {
 		Title:  e.Title.Text,
 		Display: string(display),
 		// WiiMC doesn't understand https
-		Link: strings.Replace(SelectAlternateLink(e.Link).Url,
+		Link: strings.Replace(selectAlternateLink(e.Link).Url,
 			"https:", "http:", 1),
-		Thumb: strings.Replace(SelectBigThumbnail(e.Media.Thumb).Url,
+		Thumb: strings.Replace(selectBigThumbnail(e.Media.Thumb).Url,
 			"https:", "http:", 1),
 		Duration: duration,
 	}

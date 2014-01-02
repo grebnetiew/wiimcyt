@@ -16,6 +16,11 @@ for Youtube - Search with
 
     http://yourServersIP:8089/youtube?q=
 
+Additionally, you can have the program load recent videos from your subscriptions
+by replacing the URL in the regular Youtube line by
+
+    http://yourServersIP:8089/youtube?s=YourYoutubeUsername
+
 Run the program on your server:
 
     go build youtube.go && ./youtube
@@ -27,10 +32,9 @@ Settings
 
 Three things can be tuned to your liking (without much coding, obviously). Find the 
 `const` declaration in the file `youtube.go`. You can set a different port there for
-the server to listen on, and you can change the user whose subscription feed is
-loaded when the request is empty.
+the server to listen on.
 
-Finally, you can instruct the proxy to send unicode characters in the file list. The
+Also, you can instruct the proxy to send unicode characters in the file list. The
 default behaviour replaces them, as the WiiMC font doesn't include glyphs to display
 them. If you change the font you might want to set this to `true`.
 
