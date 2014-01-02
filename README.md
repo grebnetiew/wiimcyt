@@ -25,7 +25,9 @@ by replacing the URL in the regular Youtube line by
 
     http://yourServersIP:8089/youtube?s=YourYoutubeUsername
 
-Run the program on your server:
+Run the program on your server by opening a command window (in Windows, go to the
+downloaded file, hold Shift and right-click near it, and choose 'open command window
+here') and entering:
 
     go build youtube.go && ./youtube
 
