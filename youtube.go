@@ -53,8 +53,8 @@ type Thumb struct {
 
 type Video struct {
 	Author, Title, Link, Display string
-	Duration            int
-	Thumb               string
+	Duration                     int
+	Thumb                        string
 }
 
 // Settings
@@ -154,19 +154,19 @@ func (e *Entry) Parse() *Video {
 	var duration int
 	fmt.Sscanf(e.Media.Duration.Seconds, "%d", &duration)
 	// Displayed title doesn't contain non-ascii, since WiiMC doesn't display that correctly with the default font
-	display := []rune(fmt.Sprintf("[%s] %s (%d:%d)", e.Author[0].Name.Text, e.Title.Text, duration / 60, duration % 60))
+	display := []rune(fmt.Sprintf("[%s] %s (%d:%d)", e.Author[0].Name.Text, e.Title.Text, duration/60, duration%60))
 	for i := range display {
 		if (!supportUnicode) && display[i] > 255 {
 			display[i] = '¤' // looks like a block right?
 		}
 	}
 	return &Video{
-		Author: e.Author[0].Name.Text,
-		Title:  e.Title.Text,
+		Author:  e.Author[0].Name.Text,
+		Title:   e.Title.Text,
 		Display: string(display),
 		// WiiMC doesn't understand https
-		Link: strings.Replace(selectAlternateLink(e.Link).Url, "https:", "http:", 1),
-		Thumb: strings.Replace(selectBigThumbnail(e.Media.Thumb).Url, "https:", "http:", 1),
+		Link:     strings.Replace(selectAlternateLink(e.Link).Url, "https:", "http:", 1),
+		Thumb:    strings.Replace(selectBigThumbnail(e.Media.Thumb).Url, "https:", "http:", 1),
 		Duration: duration,
 	}
 }
