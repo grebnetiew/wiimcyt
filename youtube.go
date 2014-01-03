@@ -112,15 +112,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Send the result back to the client
-	w.Header()["Content-Type"] = []string{"audio/x-scpls"}
+	w.Header()["Content-Type"] = []string{"audio/x-scplx"}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("[playlist]\n"))
-	w.Write([]byte(fmt.Sprintf("NumberOfEntries=%d\n", len(yt.Feed.Entries))))
-	for index, entry := range yt.Feed.Entries {
+	w.Write([]byte("version=5\n"))
+	for _, entry := range yt.Feed.Entries {
 		v := entry.Parse()
-		w.Write([]byte(fmt.Sprintf("Title%d=%s\n", index+1, v)))
-		w.Write([]byte(fmt.Sprintf("File%d=%s\n", index+1, v.Link)))
-		w.Write([]byte(fmt.Sprintf("Length%d=%d\n", index+1, v.Duration)))
+		w.Write([]byte("type=video\n"))
+		w.Write([]byte(fmt.Sprintf("name=%s\n", v)))
+		w.Write([]byte(fmt.Sprintf("URL=%s\n", v.Link)))
+		w.Write([]byte(fmt.Sprintf("thumb=%s\n", v.Thumb)))
 	}
 }
 
