@@ -165,7 +165,7 @@ func (e *Entry) Parse() *Video {
 
 func (v *Video) String() string {
 	// Displayed title doesn't contain non-ascii, since WiiMC doesn't display that correctly with the default font
-	display := []rune(fmt.Sprintf("[%s] %s (%d:%d)", v.Author, v.Title, v.Duration/60, v.Duration%60))
+	display := []rune(fmt.Sprintf("[%s] %s (%d:%02d)", v.Author, v.Title, v.Duration/60, v.Duration%60))
 	for i := range display {
 		if (!supportUnicode) && display[i] > 255 {
 			display[i] = '¤' // looks like a block right?
