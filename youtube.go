@@ -179,6 +179,6 @@ func (e *Entry) Parse() *Video {
 	}
 }
 
-func (v Video) String() string {
+func (v *Video) String() string {
 	return v.Display
 }
