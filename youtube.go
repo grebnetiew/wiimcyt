@@ -52,9 +52,9 @@ type Thumb struct {
 }
 
 type Video struct {
-	Author, Title, Link, Display string
-	Duration                     int
-	Thumb                        string
+	Author, Title, Link string
+	Duration            int
+	Thumb               string
 }
 
 // Settings
@@ -153,17 +153,9 @@ func selectBigThumbnail(thumbs []Thumb) Thumb {
 func (e *Entry) Parse() *Video {
 	var duration int
 	fmt.Sscanf(e.Media.Duration.Seconds, "%d", &duration)
-	// Displayed title doesn't contain non-ascii, since WiiMC doesn't display that correctly with the default font
-	display := []rune(fmt.Sprintf("[%s] %s (%d:%d)", e.Author[0].Name.Text, e.Title.Text, duration/60, duration%60))
-	for i := range display {
-		if (!supportUnicode) && display[i] > 255 {
-			display[i] = '¤' // looks like a block right?
-		}
-	}
 	return &Video{
 		Author:  e.Author[0].Name.Text,
 		Title:   e.Title.Text,
-		Display: string(display),
 		// WiiMC doesn't understand https
 		Link:     strings.Replace(selectAlternateLink(e.Link).Url, "https:", "http:", 1),
 		Thumb:    strings.Replace(selectBigThumbnail(e.Media.Thumb).Url, "https:", "http:", 1),
@@ -172,5 +164,12 @@ func (e *Entry) Parse() *Video {
 }
 
 func (v *Video) String() string {
-	return v.Display
+	// Displayed title doesn't contain non-ascii, since WiiMC doesn't display that correctly with the default font
+	display := []rune(fmt.Sprintf("[%s] %s (%d:%d)", v.Author, v.Title, v.Duration/60, v.Duration%60))
+	for i := range display {
+		if (!supportUnicode) && display[i] > 255 {
+			display[i] = '¤' // looks like a block right?
+		}
+	}
+	return string(display)
 }
