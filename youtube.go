@@ -82,13 +82,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	case len(query) > 0:
 		log.Println("Responding to query '" + query + "'")
 		// Make the http request to youtube's api
-		resp, err = http.Get("https://gdata.youtube.com/feeds/api/videos" +
-			"?alt=json&max-results=50&q=" + url.QueryEscape(query))
+		resp, err = http.Get("https://gdata.youtube.com/feeds/api/videos" + "?alt=json&max-results=50&q=" + url.QueryEscape(query))
 	case len(subscriber) > 0:
 		log.Println("Responding to request for new videos for " + subscriber)
-		resp, err = http.Get("https://gdata.youtube.com/feeds/api/users/" +
-			url.QueryEscape(subscriber) + "/newsubscriptionvideos?alt=json" + 
-			"&max-results=50")
+		resp, err = http.Get("https://gdata.youtube.com/feeds/api/users/" + url.QueryEscape(subscriber) + "/newsubscriptionvideos?alt=json&max-results=50")
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -127,8 +124,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// There are many links in the feed and most are not the video.
-// The video has the rel attribute set to alternate.
+// There are many links in the feed and most are not the video. The video has the rel attribute set to alternate.
 func selectAlternateLink(links []Link) Link {
 	if len(links) == 0 {
 		return Link{"", ""}
@@ -141,8 +137,7 @@ func selectAlternateLink(links []Link) Link {
 	return links[0]
 }
 
-// Thumbnails come in two sizes, small (90px) and large (360).
-// We'd like the big one for display on the TV.
+// Thumbnails come in two sizes, small (90px) and large (360). We'd like the big one for display on the TV.
 func selectBigThumbnail(thumbs []Thumb) Thumb {
 	if len(thumbs) == 0 {
 		return Thumb{"", 0, 0}
@@ -158,8 +153,7 @@ func selectBigThumbnail(thumbs []Thumb) Thumb {
 func (e *Entry) Parse() *Video {
 	var duration int
 	fmt.Sscanf(e.Media.Duration.Seconds, "%d", &duration)
-	// Displayed title doesn't contain non-ascii, since WiiMC doesn't
-	// display that correctly with the default font
+	// Displayed title doesn't contain non-ascii, since WiiMC doesn't display that correctly with the default font
 	display := []rune(fmt.Sprintf("[%s] %s (%d:%d)", e.Author[0].Name.Text, e.Title.Text, duration / 60, duration % 60))
 	for i := range display {
 		if (!supportUnicode) && display[i] > 255 {
@@ -171,10 +165,8 @@ func (e *Entry) Parse() *Video {
 		Title:  e.Title.Text,
 		Display: string(display),
 		// WiiMC doesn't understand https
-		Link: strings.Replace(selectAlternateLink(e.Link).Url,
-			"https:", "http:", 1),
-		Thumb: strings.Replace(selectBigThumbnail(e.Media.Thumb).Url,
-			"https:", "http:", 1),
+		Link: strings.Replace(selectAlternateLink(e.Link).Url, "https:", "http:", 1),
+		Thumb: strings.Replace(selectBigThumbnail(e.Media.Thumb).Url, "https:", "http:", 1),
 		Duration: duration,
 	}
 }
