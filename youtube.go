@@ -121,8 +121,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf("NumberOfEntries=%d\n", len(yt.Feed.Entries))))
 	for index, entry := range yt.Feed.Entries {
 		v := entry.Parse()
+		w.Write([]byte(fmt.Sprintf("Title%d=%s\n", index+1, v)))
 		w.Write([]byte(fmt.Sprintf("File%d=%s\n", index+1, v.Link)))
-		w.Write([]byte(fmt.Sprintf("Title%d=%s\n", index+1, v.Display)))
 		w.Write([]byte(fmt.Sprintf("Length%d=%d\n", index+1, v.Duration)))
 	}
 }
@@ -160,7 +160,7 @@ func (e *Entry) Parse() *Video {
 	fmt.Sscanf(e.Media.Duration.Seconds, "%d", &duration)
 	// Displayed title doesn't contain non-ascii, since WiiMC doesn't
 	// display that correctly with the default font
-	display := []rune("[" + e.Author[0].Name.Text + "] " + e.Title.Text)
+	display := []rune(fmt.Sprintf("[%s] %s (%d:%d)", e.Author[0].Name.Text, e.Title.Text, duration / 60, duration % 60))
 	for i := range display {
 		if (!supportUnicode) && display[i] > 255 {
 			display[i] = '¤' // looks like a block right?
@@ -177,4 +177,8 @@ func (e *Entry) Parse() *Video {
 			"https:", "http:", 1),
 		Duration: duration,
 	}
+}
+
+func (v Video) String() string {
+	return v.Display
 }
