@@ -79,12 +79,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	var resp *http.Response
 	var err error
 	switch {
-	case query != "":
+	case len(query) > 0:
 		log.Println("Responding to query '" + query + "'")
 		// Make the http request to youtube's api
 		resp, err = http.Get("https://gdata.youtube.com/feeds/api/videos" +
 			"?alt=json&max-results=50&q=" + url.QueryEscape(query))
-	case subscriber != "":
+	case len(subscriber) > 0:
 		log.Println("Responding to request for new videos for " + subscriber)
 		resp, err = http.Get("https://gdata.youtube.com/feeds/api/users/" +
 			url.QueryEscape(subscriber) + "/newsubscriptionvideos?alt=json" + 
