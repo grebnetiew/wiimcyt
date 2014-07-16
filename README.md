@@ -3,6 +3,11 @@ wiimcyt
 
 Youtube search proxy for WiiMC.
 
+This project is currently obsolete, as none of the streams offered by YouTube can
+be played on the Wii since their latest update. I don't currently have enough time
+and interest to fix this, but pull requests are welcomed if you feel like tackling
+it.
+
 How to youtube
 --------------
 
